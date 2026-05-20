@@ -2,6 +2,8 @@
   <div class="language-switcher">
     <button
       class="language-button"
+      :class="{ 'is-collapsed': isCollapsed }"
+      :aria-label="isCollapsed ? 'Language' : undefined"
       @click="toggleDropdown"
       @blur="handleBlur"
     >
@@ -17,8 +19,9 @@
         <path d="M10 3C10 3 7.5 5.5 7.5 10C7.5 14.5 10 17 10 17" stroke="currentColor" stroke-width="1.5"/>
         <path d="M10 3C10 3 12.5 5.5 12.5 10C12.5 14.5 10 17 10 17" stroke="currentColor" stroke-width="1.5"/>
       </svg>
-      <span class="language-label">{{ localeName }}</span>
+      <span v-show="!isCollapsed" class="language-label">{{ localeName }}</span>
       <svg
+        v-show="!isCollapsed"
         class="chevron"
         :class="{ 'chevron-open': isDropdownOpen }"
         width="16"
@@ -57,8 +60,10 @@
 <script setup>
 import { ref } from 'vue'
 import { useI18n } from '../composables/useI18n'
+import { useSidebarCollapsed } from '../composables/useSidebarCollapsed'
 
 const { currentLocale, setLocale, availableLocales, localeName } = useI18n()
+const { isCollapsed } = useSidebarCollapsed()
 
 const isDropdownOpen = ref(false)
 
@@ -96,21 +101,34 @@ const selectLanguage = (locale) => {
 .language-button {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.875rem;
-  background: white;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  width: 100%;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 120ms ease, border-color 120ms ease;
   font-family: inherit;
-  font-size: 0.875rem;
-  color: #334155;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  text-align: left;
 }
 
 .language-button:hover {
-  background: #f8fafc;
-  border-color: #cbd5e1;
+  background: var(--color-bg);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.language-button:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.language-button.is-collapsed {
+  justify-content: center;
+  padding: var(--space-2);
 }
 
 .globe-icon {
@@ -126,6 +144,7 @@ const selectLanguage = (locale) => {
   color: #64748b;
   transition: transform 0.2s ease;
   flex-shrink: 0;
+  margin-left: auto;
 }
 
 .chevron-open {
@@ -134,8 +153,9 @@ const selectLanguage = (locale) => {
 
 .dropdown-menu {
   position: absolute;
-  top: calc(100% + 0.5rem);
-  right: 0;
+  bottom: calc(100% + 0.5rem);
+  top: auto;
+  left: 0;
   min-width: 160px;
   background: white;
   border: 1px solid #e2e8f0;
